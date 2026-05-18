@@ -1,0 +1,58 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import  r2_score
+def run_stefans_law_analysis():
+    print("\n=== Running Stefan's Law Verification ===")
+    
+    # Experimental Data
+    V = np.array([9.0, 9.5, 10.0, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0])
+    I = np.array([0.66, 0.68, 0.70, 0.72, 0.73, 0.74, 0.76, 0.78, 0.80])
+
+    # Calibration Constants
+    R0 = 2.5        # Room temp resistance in Ohms
+    t0 = 24.0      # Room temp in Celsius
+    alpha = 0.0045  # Temp coefficient for Tungsten
+
+    # Intermediate Physical Variable Calculations
+    Rt = V / I
+    t_celsius = (1 / alpha) * ((Rt / R0) - 1) + t0
+    T_kelvin = t_celsius + 273.15
+    P = V * I
+
+    # Logarithmic Transformations for plotting
+    log_T = np.log10(T_kelvin)
+    log_P = np.log10(P)
+
+    # performing Linear Regression
+    X = log_T.reshape(-1, 1)  
+    y = log_P
+    model = LinearRegression()
+    model.fit(X, y)
+    y_pred=y_pred = model.predict(X)
+    slope_sk = model.coef_[0]
+    intercept_sk = model.intercept_
+    r2 = r2_score(y, y_pred)
+
+    # Print Out Results Summary
+    print(f"Slope (n): {slope_sk:.4f}")
+    print(f"Intercept (C): {intercept_sk:.4f}")
+    print(f"R²: {r2:.4f}")
+
+    # Generation of Best Fit Plots
+    plt.figure(figsize=(8, 6))
+    plt.scatter(log_T, log_P, color='blue', label='Experimental Data')
+
+    best_fit_line = (slope_sk * log_T) + intercept_sk
+    plt.plot(log_T, best_fit_line, color='red', linestyle='--', 
+             label=f'Best Fit Line: y = {slope_sk:.2f}x + {intercept_sk:.2f}')
+
+    plt.title("Verification of Stefan's Law: log(P) vs log(T)")
+    plt.xlabel('log(T) [Kelvin]')
+    plt.ylabel('log(P) [Watts]')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+if __name__ == '__main__':
+    run_stefans_law_analysis()
